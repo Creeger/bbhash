@@ -2,22 +2,15 @@ package bbhash_test
 
 import (
 	"bytes"
-	"context"
-	"crypto/sha256"
 	_ "embed"
-	"encoding/binary"
 	"iter"
-	"os"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/relab/bbhash"
-	"github.com/relab/bbhash/internal/fast"
 	"github.com/relab/bbhash/internal/test"
-	"github.com/relab/iago"
-	"github.com/relab/iago/iagotest"
 )
 
 // String taken from https://www.lipsum.com/
@@ -38,16 +31,6 @@ func TestChunks(t *testing.T) {
 	}
 }
 
-var sha256hashFunc = func(buf []byte) uint64 {
-	h := sha256.New()
-	h.Write(buf)
-	return binary.LittleEndian.Uint64(h.Sum(nil))
-}
-
-var fastHashFunc = func(buf []byte) uint64 {
-	return fast.Hash64(uint64(123), buf)
-}
-
 func CollectFunc[I, O any](seq iter.Seq[I], f func(I) O) (o []O) {
 	for v := range seq {
 		o = append(o, f(v))
@@ -62,12 +45,12 @@ func TestHashKeysFromChunks(t *testing.T) {
 		in        string
 		chunkSize int
 	}{
-		{name: "FashHash", hashFunc: fastHashFunc, in: input[:5], chunkSize: 4},
-		{name: "FashHash", hashFunc: fastHashFunc, in: input[:5], chunkSize: 8},
-		{name: "SHA256", hashFunc: sha256hashFunc, in: input[:5], chunkSize: 4},
-		{name: "SHA256", hashFunc: sha256hashFunc, in: input[:5], chunkSize: 8},
-		{name: "LongFast", hashFunc: fastHashFunc, in: input, chunkSize: 128},
-		{name: "LongSHA", hashFunc: sha256hashFunc, in: input, chunkSize: 128},
+		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 4},
+		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 8},
+		{name: "SHA256", hashFunc: bbhash.SHA256hashFunc, in: input[:5], chunkSize: 4},
+		{name: "SHA256", hashFunc: bbhash.SHA256hashFunc, in: input[:5], chunkSize: 8},
+		{name: "LongFast", hashFunc: bbhash.FastHashFunc, in: input, chunkSize: 128},
+		{name: "LongSHA", hashFunc: bbhash.SHA256hashFunc, in: input, chunkSize: 128},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -112,6 +95,7 @@ func Uin64ToBytes(keys []uint64) []byte {
 	return buf
 }
 
+/*  Put on ice for now due to difficulties getting it up and running
 func BenchmarkBBhash(b *testing.B) {
 	n := 1
 	//Create keys for the client group
@@ -155,3 +139,4 @@ func BenchmarkBBhash(b *testing.B) {
 		return nil
 	})
 }
+*/
