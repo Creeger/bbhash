@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"iter"
+	"math/rand"
 	"slices"
 	"strings"
 	"testing"
@@ -67,6 +68,37 @@ func TestHashKeysFromChunks(t *testing.T) {
 				t.Errorf("Keys(): (-got +want) \n%s", diff)
 			}
 		})
+	}
+}
+
+func TestKeysNonce(t *testing.T) {
+	tests := []struct {
+		name      string
+		hashFunc  func([]byte) uint64
+		in        string
+		chunkSize int
+	}{
+		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 4},
+		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 8},
+		{name: "SHA256", hashFunc: bbhash.SHA256HashFunc, in: input[:5], chunkSize: 4},
+		{name: "SHA256", hashFunc: bbhash.SHA256HashFunc, in: input[:5], chunkSize: 8},
+		{name: "LongFast", hashFunc: bbhash.FastHashFunc, in: input, chunkSize: 128},
+		{name: "LongSHA", hashFunc: bbhash.SHA256HashFunc, in: input, chunkSize: 128},
+	}
+	for _, test := range tests {
+		nonce := []byte{byte(rand.Intn(256))}
+		wantHashedKeys := CollectFunc(slices.Chunk([]byte(test.in), test.chunkSize), func(v []byte) uint64 {
+			v = append(v, nonce...)
+			return test.hashFunc(v)
+		})
+
+		r := strings.NewReader(test.in)
+		chunks := bbhash.ReadChunks(r, test.chunkSize)
+		gotHashedKeys := bbhash.KeysNonce(test.hashFunc, chunks, nonce)
+
+		if diff := cmp.Diff(gotHashedKeys, wantHashedKeys); diff != "" {
+			t.Errorf("Keys(): (-got +want) \n%s", diff)
+		}
 	}
 }
 
