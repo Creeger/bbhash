@@ -4,7 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"iter"
-	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -12,7 +11,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/relab/bbhash"
 	"github.com/relab/bbhash/internal/test"
-
 )
 
 // String taken from https://www.lipsum.com/
@@ -49,10 +47,10 @@ func TestHashKeysFromChunks(t *testing.T) {
 	}{
 		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 4},
 		{name: "FashHash", hashFunc: bbhash.FastHashFunc, in: input[:5], chunkSize: 8},
-		{name: "SHA256", hashFunc: bbhash.SHA256HashFunc, in: input[:5], chunkSize: 4},
-		{name: "SHA256", hashFunc: bbhash.SHA256HashFunc, in: input[:5], chunkSize: 8},
+		{name: "SHA256", hashFunc: bbhash.Sha256HashFunc, in: input[:5], chunkSize: 4},
+		{name: "SHA256", hashFunc: bbhash.Sha256HashFunc, in: input[:5], chunkSize: 8},
 		{name: "LongFast", hashFunc: bbhash.FastHashFunc, in: input, chunkSize: 128},
-		{name: "LongSHA", hashFunc: bbhash.SHA256HashFunc, in: input, chunkSize: 128},
+		{name: "LongSHA", hashFunc: bbhash.Sha256HashFunc, in: input, chunkSize: 128},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -73,11 +71,11 @@ func TestHashKeysFromChunks(t *testing.T) {
 }
 
 func BenchmarkChunks(b *testing.B) {
-	for _, keySz := range keySizesOneV {
+	for _, keySz := range keySizes {
 		keys := generateKeys(keySz, 99)
 		bKeys := Uin64ToBytes(keys)
 		r := bytes.NewReader(bKeys)
-		for _, gamma := range gammaValuesOneV {
+		for _, gamma := range gammaValues {
 			for _, sz := range bufSizes {
 				b.Run(test.Name("New(Chunks)", []string{"gamma", "buffer", "keys"}, gamma, sz, keySz), func(b *testing.B) {
 					b.Log("Running ReadChunks")

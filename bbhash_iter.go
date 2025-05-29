@@ -45,3 +45,5 @@ var SHA256HashFunc = func(buf []byte) uint64 {
 var FastHashFunc = func(buf []byte) uint64 {
 	return fast.Hash64(123, buf)
 }
+
+//
