@@ -21,6 +21,7 @@ var (
 	longKeySizes    = []int{10_000_000, 100_000_000, 1_000_000_000}
 	partitionValues = []int{1, 4, 8, 16, 24, 32, 48, 64, 128}
 	gammaValues     = []float64{1.0, 1.5, 2.0}
+	bufSizes        = []int{10, 100, 1000}
 )
 
 // TestMain parses command-line flags to set the key sizes, partition values, and gamma values.
