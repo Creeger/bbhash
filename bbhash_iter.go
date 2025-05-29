@@ -35,8 +35,16 @@ func Keys(hashFunc func([]byte) uint64, chunks iter.Seq[[]byte]) []uint64 {
 	}
 	return keys
 }
+func KeysNonce(hashFunc func([]byte) uint64, chunks iter.Seq[[]byte], nonce []byte) []uint64 {
+	var keys []uint64
+	for c := range chunks {
+		c = append(c, nonce...)
+		keys = append(keys, hashFunc(c))
+	}
+	return keys
+}
 
-var SHA256hashFunc = func(buf []byte) uint64 {
+var SHA256HashFunc = func(buf []byte) uint64 {
 	h := sha256.New()
 	h.Write(buf)
 	return binary.LittleEndian.Uint64(h.Sum(nil))
